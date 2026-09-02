@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checklist Manager</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="app">
+  <header class="topbar">
+    <div>
+      <h1>Checklist Manager</h1>
+      <p>Create, import and complete reusable checklists.</p>
+    </div>
+    <div class="top-actions">
+      <button id="newChecklist" class="primary">+ New checklist</button>
+      <label class="button secondary">Import CSV<input id="csvInput" type="file" accept=".csv,text/csv" hidden></label>
+      <button id="exportAll" class="secondary">Export all</button>
+    </div>
+  </header>
+
+  <section class="layout">
+    <aside class="sidebar">
+      <div class="side-head">
+        <strong>My checklists</strong>
+        <span id="listCount"></span>
+      </div>
+      <div id="checklistList" class="checklist-list"></div>
+      <div id="noLists" class="empty small">No checklists yet.</div>
+    </aside>
+
+    <section class="content">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">✓</div>
+        <h2>Select a checklist</h2>
+        <p>Choose one from the left, create a new one, or import a CSV.</p>
+        <button id="emptyNew" class="primary">Create checklist</button>
+      </div>
+
+      <div id="checklistView" hidden>
+        <div class="check-header">
+          <div class="title-area">
+            <input id="checklistName" class="title-input" aria-label="Checklist name">
+            <div class="progress-line">
+              <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+              <span id="progressText"></span>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button id="renameButton" class="secondary">Rename</button>
+            <button id="deleteButton" class="danger">Delete</button>
+          </div>
+        </div>
+
+        <p class="reorder-help">Drag items using ⋮⋮, or use the ↑ / ↓ buttons to change their order.</p>
+        <form id="addForm" class="add-form">
+          <input id="newItem" maxlength="500" autocomplete="off" placeholder="Add an item…" required>
+          <button class="primary" type="submit">Add item</button>
+        </form>
+
+        <div id="items" class="items"></div>
+
+        <div class="bottom-actions">
+          <button id="completeAll" class="secondary">Complete all</button>
+          <button id="clearCompleted" class="secondary">Clear completed</button>
+          <button id="resetChecklist" class="secondary">Reset checklist</button>
+          <button id="exportCurrent" class="secondary">Export CSV</button>
+        </div>
+        <p id="status" class="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </section>
+
+  <footer>
+    <span>Data is stored locally in this browser.</span>
+    <button id="clearData" class="text-button">Clear all local data</button>
+  </footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
