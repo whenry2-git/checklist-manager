@@ -2,81 +2,98 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
 <title>Checklist Manager</title>
-<link rel="stylesheet" href="style.css">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#f3f6fb;--card:#fff;--text:#172033;--muted:#697386;--line:#e1e6ef;--blue:#2563eb;--blue2:#eff6ff;--red:#dc2626}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #b8ccff;outline-offset:2px}
+.app{max-width:1100px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:20px}.brand{display:flex;gap:12px;align-items:center}.logo{width:44px;height:44px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:800}.brand h1{font-size:23px;margin:0}.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:9px;padding:9px 13px;min-height:42px}.btn.primary{background:var(--blue);border-color:var(--blue);color:white;font-weight:650}.btn.danger{color:var(--red);background:#fff7f7;border-color:#f3cccc}.btn.small{min-height:36px;padding:6px 10px}
+.layout{display:grid;grid-template-columns:280px 1fr;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card);box-shadow:0 8px 30px rgba(20,30,50,.06);min-height:650px}.side{background:#f8fafc;border-right:1px solid var(--line);padding:14px}.sidehead{display:flex;justify-content:space-between;padding:4px 5px 12px;font-size:14px}.sidehead span{color:var(--muted);font-size:12px}.lists{display:grid;gap:5px}.list{width:100%;border:1px solid transparent;background:transparent;border-radius:9px;text-align:left;padding:11px;display:flex;justify-content:space-between;gap:8px}.list:hover{background:#f1f5f9}.list.active{background:var(--blue2);border-color:#bfdbfe;color:#1d4ed8}.listname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.badge{font-size:11px;color:var(--muted);white-space:nowrap}.side-create{width:100%;margin-top:12px}
+.main{padding:20px 28px;min-width:0}.empty{min-height:420px;display:grid;place-items:center;text-align:center;color:var(--muted)}.emptybox{max-width:420px}.emptyicon{margin:auto;width:62px;height:62px;border-radius:50%;background:var(--blue2);color:var(--blue);display:grid;place-items:center;font-size:29px;font-weight:800}.empty h2{color:var(--text);margin:12px 0 5px}.empty p{margin:0}
+.head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.title{width:100%;border:0;background:transparent;font-size:28px;font-weight:750;color:var(--text);padding:0}.sub{margin-top:12px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}.track{width:min(430px,100%);height:8px;background:#e9edf3;border-radius:99px;overflow:hidden}.bar{height:100%;background:var(--blue);width:0;transition:width .2s}
+.add{display:flex;gap:8px;margin:27px 0 14px}.add input{flex:1;min-width:0;border:1px solid var(--line);background:#f8fafc;border-radius:9px;padding:11px 13px}.items{display:grid;gap:8px}.item{display:grid;grid-template-columns:26px 22px minmax(0,1fr) auto auto auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 9px;background:#fff}.item.dragging{opacity:.45}.item.over{border-color:var(--blue);background:var(--blue2)}.handle{color:#94a3b8;font-size:19px;cursor:grab;text-align:center;user-select:none}.check{width:20px;height:20px}.text{overflow-wrap:anywhere;line-height:1.4}.done .text{text-decoration:line-through;color:#8a93a3}.iconbtn{border:0;background:transparent;color:#718096;border-radius:7px;min-width:36px;min-height:36px}.iconbtn:hover:not(:disabled){background:#f1f5f9;color:var(--text)}.iconbtn:disabled{opacity:.2;cursor:default}.remove:hover{background:#fff0f0;color:var(--red)}
+.bottom{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:20px;padding-top:16px}.status{height:20px;color:var(--muted);font-size:12px;margin-top:10px}footer{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding:12px 3px}.link{border:0;background:transparent;color:var(--muted);text-decoration:underline;padding:0}
+@media(max-width:760px){.app{padding:13px}.top{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions .btn,.actions label{flex:1}.layout{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line)}.lists{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}.side-create{grid-column:1/-1}.main{padding:18px 14px}.head{flex-direction:column}.head .actions{width:100%}.title{font-size:24px}.add{flex-direction:column}.add .btn{width:100%}.item{grid-template-columns:24px 22px minmax(0,1fr) 36px 36px 36px}.handle{font-size:18px}footer{flex-direction:column;gap:8px}}
+</style>
 </head>
 <body>
-<main class="app">
-  <header class="topbar">
-    <div>
-      <h1>Checklist Manager</h1>
-      <p>Create, import and complete reusable checklists.</p>
+<div class="app">
+<header class="top">
+  <div class="brand"><div class="logo">✓</div><div><h1>Checklist Manager</h1><p>Simple, reusable checklists that stay on this device.</p></div></div>
+  <div class="actions">
+    <button class="btn primary" id="newBtn">＋ New checklist</button>
+    <label class="btn">Import CSV<input id="csv" type="file" accept=".csv,text/csv" hidden></label>
+  </div>
+</header>
+<div class="layout">
+<aside class="side">
+  <div class="sidehead"><strong>My checklists</strong><span id="count"></span></div>
+  <div class="lists" id="lists"></div>
+  <div id="noLists" style="padding:28px 8px;text-align:center;color:var(--muted);font-size:13px">No checklists yet.</div>
+  <button class="btn primary side-create" id="sideNew" type="button">＋ Create checklist</button>
+</aside>
+<main class="main">
+  <div id="empty" class="empty"><div class="emptybox"><div class="emptyicon">✓</div><h2>Select a checklist</h2><p>Choose a checklist from the left.</p></div></div>
+  <div id="view" hidden>
+    <div class="head">
+      <div style="flex:1;min-width:0"><input id="title" class="title" aria-label="Checklist name"><div class="sub"><div class="track"><div id="bar" class="bar"></div></div><span id="progress"></span></div></div>
+      <div class="actions"><button class="btn small" id="rename">Rename</button><button class="btn small danger" id="delete">Delete</button></div>
     </div>
-    <div class="top-actions">
-      <button id="newChecklist" class="primary">+ New checklist</button>
-      <label class="button secondary">Import CSV<input id="csvInput" type="file" accept=".csv,text/csv" hidden></label>
-      <button id="exportAll" class="secondary">Export all</button>
-    </div>
-  </header>
-
-  <section class="layout">
-    <aside class="sidebar">
-      <div class="side-head">
-        <strong>My checklists</strong>
-        <span id="listCount"></span>
-      </div>
-      <div id="checklistList" class="checklist-list"></div>
-      <div id="noLists" class="empty small">No checklists yet.</div>
-    </aside>
-
-    <section class="content">
-      <div id="emptyState" class="empty-state">
-        <div class="empty-icon">✓</div>
-        <h2>Select a checklist</h2>
-        <p>Choose one from the left, create a new one, or import a CSV.</p>
-        <button id="emptyNew" class="primary">Create checklist</button>
-      </div>
-
-      <div id="checklistView" hidden>
-        <div class="check-header">
-          <div class="title-area">
-            <input id="checklistName" class="title-input" aria-label="Checklist name">
-            <div class="progress-line">
-              <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
-              <span id="progressText"></span>
-            </div>
-          </div>
-          <div class="header-actions">
-            <button id="renameButton" class="secondary">Rename</button>
-            <button id="deleteButton" class="danger">Delete</button>
-          </div>
-        </div>
-
-        <p class="reorder-help">Drag items using ⋮⋮, or use the ↑ / ↓ buttons to change their order.</p>
-        <form id="addForm" class="add-form">
-          <input id="newItem" maxlength="500" autocomplete="off" placeholder="Add an item…" required>
-          <button class="primary" type="submit">Add item</button>
-        </form>
-
-        <div id="items" class="items"></div>
-
-        <div class="bottom-actions">
-          <button id="completeAll" class="secondary">Complete all</button>
-          <button id="clearCompleted" class="secondary">Clear completed</button>
-          <button id="resetChecklist" class="secondary">Reset checklist</button>
-          <button id="exportCurrent" class="secondary">Export CSV</button>
-        </div>
-        <p id="status" class="status" aria-live="polite"></p>
-      </div>
-    </section>
-  </section>
-
-  <footer>
-    <span>Data is stored locally in this browser.</span>
-    <button id="clearData" class="text-button">Clear all local data</button>
-  </footer>
+    <form class="add" id="add"><input id="itemInput" maxlength="500" placeholder="Add a checklist item…" autocomplete="off" required><button class="btn primary" type="submit">Add item</button></form>
+    <div id="items" class="items"></div>
+    <div class="bottom"><button class="btn small" id="all">Complete all</button><button class="btn small" id="clear">Clear completed</button><button class="btn small" id="reset">Reset</button><button class="btn small" id="export">Export CSV</button></div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </div>
 </main>
-<script src="app.js"></script>
+</div>
+<footer><span>Saved automatically in this Chrome browser.</span><button class="link" id="wipe">Clear all local data</button></footer>
+</div>
+<script>
+(function(){
+const KEY="checklist-manager-local-v2";
+let state;try{state=JSON.parse(localStorage.getItem(KEY))||{lists:[]}}catch(e){state={lists:[]}}
+if(!Array.isArray(state.lists))state={lists:[]};let selected=state.lists[0]?.id||null;
+const $=id=>document.getElementById(id);
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function cur(){return state.lists.find(x=>x.id===selected)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function say(s){$("status").textContent=s;clearTimeout(say.t);say.t=setTimeout(()=>$("status").textContent="",2200)}
+function render(){
+ const lists=$("lists");lists.innerHTML="";$("count").textContent=state.lists.length;$("noLists").hidden=state.lists.length>0;
+ state.lists.forEach(c=>{const b=document.createElement("button");b.className="list"+(c.id===selected?" active":"");b.type="button";const d=c.items.filter(i=>i.done).length;b.innerHTML='<span class="listname">'+esc(c.name)+'</span><span class="badge">'+d+'/'+c.items.length+'</span>';b.onclick=()=>{selected=c.id;render()};lists.appendChild(b)});
+ const c=cur();$("empty").hidden=!!c;$("view").hidden=!c;if(!c)return;
+ $("title").value=c.name;const done=c.items.filter(i=>i.done).length,total=c.items.length,p=total?Math.round(done/total*100):0;$("bar").style.width=p+"%";$("progress").textContent=total?done+" of "+total+" complete ("+p+"%)":"0 items";renderItems(c)
+}
+function renderItems(c){
+ const box=$("items");box.innerHTML="";if(!c.items.length){box.innerHTML='<div style="text-align:center;color:var(--muted);padding:30px 8px;font-size:13px">No items yet. Add your first item above.</div>';return}
+ c.items.forEach((it,i)=>{const row=document.createElement("div");row.className="item"+(it.done?" done":"");row.draggable=true;row.dataset.i=i;
+ row.innerHTML='<span class="handle" title="Drag to reorder">⋮⋮</span><input class="check" type="checkbox" '+(it.done?"checked":"")+' aria-label="Complete item"><span class="text">'+esc(it.text)+'</span><button class="iconbtn up" type="button" aria-label="Move up">↑</button><button class="iconbtn down" type="button" aria-label="Move down">↓</button><button class="iconbtn remove" type="button" aria-label="Remove item">×</button>';
+ row.querySelector(".check").onchange=e=>{it.done=e.target.checked;save();render()};row.querySelector(".up").disabled=i===0;row.querySelector(".down").disabled=i===c.items.length-1;
+ row.querySelector(".up").onclick=()=>move(i,i-1);row.querySelector(".down").onclick=()=>move(i,i+1);row.querySelector(".remove").onclick=()=>{c.items.splice(i,1);save();render()};
+ row.ondragstart=e=>{row.classList.add("dragging");e.dataTransfer.setData("text/plain",String(i));e.dataTransfer.effectAllowed="move"};row.ondragend=()=>row.classList.remove("dragging");row.ondragover=e=>{e.preventDefault();row.classList.add("over")};row.ondragleave=()=>row.classList.remove("over");row.ondrop=e=>{e.preventDefault();row.classList.remove("over");const from=Number(e.dataTransfer.getData("text/plain"));if(Number.isInteger(from)&&from!==i){const x=c.items.splice(from,1)[0];c.items.splice(i,0,x);save();render();say("Item order saved.")}};box.appendChild(row)})
+}
+function move(a,b){const c=cur();if(!c||b<0||b>=c.items.length)return;[c.items[a],c.items[b]]=[c.items[b],c.items[a]];save();render()}
+function create(){const n=prompt("Checklist name:","New checklist");if(!n||!n.trim())return;const c={id:uid(),name:n.trim(),items:[]};state.lists.push(c);selected=c.id;save();render();setTimeout(()=>$("itemInput").focus(),50)}
+$("newBtn").onclick=create;$("sideNew").onclick=create;
+$("add").onsubmit=e=>{e.preventDefault();const c=cur(),v=$("itemInput").value.trim();if(!c||!v)return;c.items.push({text:v,done:false});$("itemInput").value="";save();render();$("itemInput").focus()};
+$("title").onchange=e=>{const c=cur();if(!c)return;c.name=e.target.value.trim()||"Untitled checklist";save();render()};
+$("rename").onclick=()=>{const c=cur();if(!c)return;const n=prompt("Checklist name:",c.name);if(n&&n.trim()){c.name=n.trim();save();render();say("Checklist renamed.")}};
+$("delete").onclick=()=>{const c=cur();if(!c)return;if(confirm('Delete "'+c.name+'"?')){state.lists=state.lists.filter(x=>x.id!==c.id);selected=state.lists[0]?.id||null;save();render()}};
+$("all").onclick=()=>{const c=cur();if(!c)return;c.items.forEach(i=>i.done=true);save();render()};
+$("clear").onclick=()=>{const c=cur();if(!c)return;c.items=c.items.filter(i=>!i.done);save();render()};
+$("reset").onclick=()=>{const c=cur();if(!c)return;if(confirm("Reset all items to incomplete?")){c.items.forEach(i=>i.done=false);save();render()}};
+function csvCell(s){return '"'+String(s).replace(/"/g,'""')+'"'}
+function download(name,text){const a=document.createElement("a"),u=URL.createObjectURL(new Blob([text],{type:"text/csv;charset=utf-8"}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),500)}
+$("export").onclick=()=>{const c=cur();if(!c)return;download((c.name||"checklist").replace(/[\\/:*?"<>|]/g,"_")+".csv",[["checklist","item","completed"],...c.items.map(i=>[c.name,i.text,i.done?"true":"false"])].map(r=>r.map(csvCell).join(",")).join("\\r\\n"))};
+function parseCSV(s){const rows=[];let r=[],v="",q=false;for(let i=0;i<s.length;i++){let ch=s[i];if(q){if(ch==='"'&&s[i+1]==='"'){v+='"';i++}else if(ch==='"')q=false;else v+=ch}else if(ch==='"')q=true;else if(ch===','){r.push(v);v=""}else if(ch==='\\n'){r.push(v);rows.push(r);r=[];v=""}else if(ch!=='\\r')v+=ch}r.push(v);if(r.length>1||r[0])rows.push(r);return rows}
+$("csv").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const rows=parseCSV(String(rd.result||""));if(!rows.length)throw Error("CSV is empty.");let h=rows[0].map(x=>x.trim().toLowerCase()),ci=h.indexOf("checklist"),ii=h.indexOf("item"),di=h.indexOf("completed"),start=1;if(ii<0){ii=h.indexOf("task");if(ii<0){ci=0;ii=1;di=2;start=0}}const groups=new Map();for(let i=start;i<rows.length;i++){const row=rows[i],text=String(row[ii]||"").trim();if(!text)continue;const name=String(row[ci]||"").trim()||f.name.replace(/\\.csv$/i,"")||"Imported checklist";if(!groups.has(name))groups.set(name,[]);groups.get(name).push({text,done:di>=0&&/^(true|yes|1|done|complete|completed)$/i.test(String(row[di]||"").trim())})}if(!groups.size)throw Error("No items found.");let first=null;groups.forEach((items,name)=>{const c={id:uid(),name,items};state.lists.push(c);if(!first)first=c.id});selected=first;save();render();say("CSV imported successfully.")}catch(err){alert("Could not import CSV: "+err.message)}e.target.value=""};rd.readAsText(f)};
+$("wipe").onclick=()=>{if(confirm("Delete all saved checklists?")){state={lists:[]};selected=null;save();render()}};render();
+})();
+</script>
 </body>
 </html>
