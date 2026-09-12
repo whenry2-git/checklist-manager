@@ -16,7 +16,13 @@ button,input{font:inherit}button{cursor:pointer}.app{min-height:100vh}.top{heigh
 <script>
 const SUPABASE_URL = "https://rwroqfdyylqqtlatkpqd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_3PWwH-10cmn0fI5LLNS-WA_Tvb_cWS0";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
 
 const root=document.getElementById("root");
 let state={lists:[]}, selected=null, user=null, realtime=null, busy=false;
@@ -27,32 +33,86 @@ const $=x=>document.getElementById(x);
 function setMsg(type,msg){const el=$("msg");if(el){el.className=type||"";el.textContent=msg||"";el.hidden=!msg}}
 function loading(v){busy=v;document.querySelectorAll("button").forEach(b=>b.disabled=v)}
 
+const APP_URL = "https://whenry2-git.github.io/checklist-manager/";
+let pendingEmail="";
+
 function renderLogin(){
  root.innerHTML=`<div class="login"><div class="loginbox card">
- <h1>Checklist Manager</h1><p>Sign in to sync your checklists across your PC and Android devices.</p>
+ <h1>Checklist Manager</h1>
+ <p>Sign in to sync your checklists across your PC and Android devices.</p>
  <div id="msg" hidden></div>
  <form id="auth">
  <div class="field"><label>Email</label><input id="email" type="email" required autocomplete="email"></div>
  <div class="field"><label>Password</label><input id="password" type="password" required minlength="6" autocomplete="current-password"></div>
  <button class="btn primary" id="signin">Sign in</button>
  <button class="btn" type="button" id="signup">Create account</button>
+ <button class="btn" type="button" id="resend">Resend confirmation email</button>
  </form>
- <div class="note">Your checklist data is stored in your Supabase account. Use the same login on every device.</div>
+ <div class="note">New accounts require email confirmation. After clicking the confirmation link, you will return to this Checklist Manager page.</div>
  </div></div>`;
  $("auth").onsubmit=async e=>{e.preventDefault();await signIn()};
  $("signup").onclick=signUp;
+ $("resend").onclick=resendConfirmation;
 }
+
+function showAuthMessageFromUrl(){
+ const hash=window.location.hash.startsWith("#")?window.location.hash.slice(1):"";
+ const params=new URLSearchParams(hash);
+ const error=params.get("error");
+ const description=params.get("error_description");
+ if(error || description){
+   setMsg("error",decodeURIComponent(description||error));
+   history.replaceState(null,"",window.location.pathname+window.location.search);
+   return true;
+ }
+ return false;
+}
+
 async function signIn(){
  setMsg("","");loading(true);
- const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
- loading(false); if(error)setMsg("error",error.message);
+ const {data,error}=await sb.auth.signInWithPassword({
+   email:$("email").value.trim(),
+   password:$("password").value
+ });
+ loading(false);
+ if(error)setMsg("error",error.message);
+ else if(data.session){user=data.user;await loadApp()}
 }
+
 async function signUp(){
+ const email=$("email").value.trim(), password=$("password").value;
+ if(!email||!password)return;
  setMsg("","");loading(true);
- const {data,error}=await sb.auth.signUp({email:$("email").value.trim(),password:$("password").value});
+ const {data,error}=await sb.auth.signUp({
+   email,
+   password,
+   options:{emailRedirectTo:APP_URL}
+ });
  loading(false);
  if(error)return setMsg("error",error.message);
- if(data.session){user=data.user;await loadApp()}else setMsg("success","Account created. Check your email to confirm your account, then sign in.");
+
+ pendingEmail=email;
+
+ if(data.session){
+   user=data.user;
+   await loadApp();
+ }else{
+   setMsg("success","Account created. Check your email and click the confirmation link. Then return to this page.");
+ }
+}
+
+async function resendConfirmation(){
+ const email=(pendingEmail||$("email")?.value||"").trim();
+ if(!email)return setMsg("error","Enter your email address first.");
+ setMsg("","");loading(true);
+ const {error}=await sb.auth.resend({
+   type:"signup",
+   email,
+   options:{emailRedirectTo:APP_URL}
+ });
+ loading(false);
+ if(error)setMsg("error",error.message);
+ else setMsg("success","A new confirmation email was requested. Check your inbox and spam folder.");
 }
 
 function renderApp(){
@@ -133,8 +193,31 @@ function subscribe(){
  if(realtime)sb.removeChannel(realtime);
  realtime=sb.channel("checklist-sync-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"checklists",filter:"user_id=eq."+user.id},()=>loadApp()).on("postgres_changes",{event:"*",schema:"public",table:"checklist_items"},()=>loadApp()).subscribe();
 }
-sb.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;if(user)await loadApp();else{state={lists:[]};selected=null;renderLogin()}});
-(async()=>{const {data}=await sb.auth.getSession();if(data.session){user=data.session.user;renderApp();await loadApp()}else renderLogin()})();
+sb.auth.onAuthStateChange(async(_event,session)=>{
+  user=session?.user||null;
+  if(user){
+    if(!$("view") && !$("lists")) renderApp();
+    await loadApp();
+  }else{
+    state={lists:[]};
+    selected=null;
+    renderLogin();
+  }
+});
+(async()=>{
+  const authError = showAuthMessageFromUrl();
+  const {data}=await sb.auth.getSession();
+  if(data.session){
+    user=data.session.user;
+    renderApp();
+    await loadApp();
+  }else{
+    renderLogin();
+    if(authError){
+      setMsg("error","The email confirmation could not be completed. Please request a new confirmation email.");
+    }
+  }
+})();
 </script>
 </body>
 </html>
