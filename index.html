@@ -1,234 +1,52 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2563eb">
-<title>Checklist Manager</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fb;color:#172033}
-button,input{font:inherit}button{cursor:pointer}.app{min-height:100vh}.top{height:64px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:0 22px}.brand{font-weight:750;font-size:20px}.topright{display:flex;gap:10px;align-items:center}.status{font-size:13px;color:#64748b}.layout{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 105px)}.side{background:#fff;border-right:1px solid #e5e7eb;padding:18px 14px}.sidehead{display:flex;justify-content:space-between;align-items:center;margin:0 6px 10px}.lists{display:flex;flex-direction:column;gap:5px}.listbtn{width:100%;text-align:left;background:transparent;border:0;border-radius:9px;padding:10px 11px;color:#334155;display:flex;justify-content:space-between;gap:8px}.listbtn:hover,.listbtn.active{background:#eef4ff;color:#1d4ed8}.badge{font-size:12px;color:#64748b}.side-create{margin-top:12px;width:100%}.data-section{margin-top:18px;padding-top:16px;border-top:1px solid #eef0f3}.data-title{font-size:13px;font-weight:700;color:#64748b;margin:0 6px 8px}.data-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.data-actions .btn{width:100%;padding:8px 7px}.main{padding:24px;max-width:1000px;width:100%;margin:0 auto}.empty{min-height:250px;display:grid;place-content:center;text-align:center;color:#64748b}.empty h2{margin:8px 0 4px;color:#334155}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 2px 8px #00000008}.viewhead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:20px;border-bottom:1px solid #eef0f3}.title{font-size:25px;font-weight:750;margin:0 0 8px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #d7dce4;background:#fff;border-radius:9px;padding:9px 13px;color:#334155}.btn:hover{background:#f8fafc}.btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}.btn.danger{color:#b91c1c}.progresswrap{padding:16px 20px;border-bottom:1px solid #eef0f3}.progressbar{height:8px;background:#e9edf3;border-radius:99px;overflow:hidden}.progress{height:100%;background:#2563eb;border-radius:99px;transition:width .2s}.progresslabel{font-size:13px;color:#64748b;margin-top:7px}.items{padding:10px 20px}.item{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #f0f2f5}.item:last-child{border-bottom:0}.itemtext.done{text-decoration:line-through;color:#94a3b8}.itemtext{word-break:break-word}.handle{color:#94a3b8;cursor:grab;font-size:17px}.itemtools{display:flex;gap:4px}.iconbtn{width:32px;height:32px;border:1px solid #e1e5eb;background:#fff;border-radius:7px}.addrow{padding:15px 20px;border-top:1px solid #eef0f3;display:flex;gap:8px}.addrow input{flex:1;border:1px solid #d7dce4;border-radius:9px;padding:10px 12px}.bottom{padding:14px 20px;border-top:1px solid #eef0f3;display:flex;gap:8px;flex-wrap:wrap}.emptyitems{padding:30px;text-align:center;color:#64748b}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.loginbox{width:min(420px,100%);padding:28px}.loginbox h1{margin-top:0}.field{margin:12px 0}.field label{display:block;font-size:13px;font-weight:650;margin-bottom:6px}.field input{width:100%;padding:11px 12px;border:1px solid #d7dce4;border-radius:9px}.loginbox .btn{width:100%;margin-top:8px}.note{font-size:12px;color:#64748b;line-height:1.5;margin-top:14px}.error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:9px;padding:10px;font-size:13px;margin:10px 0}.success{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:9px;padding:10px;font-size:13px;margin:10px 0}footer{height:41px;background:#fff;border-top:1px solid #e5e7eb;text-align:center;padding:11px;color:#94a3b8;font-size:12px}@media(max-width:700px){.layout{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid #e5e7eb}.lists{max-height:180px;overflow:auto}.main{padding:12px}.viewhead{padding:16px;flex-direction:column}.items,.progresswrap,.addrow,.bottom{padding-left:14px;padding-right:14px}.top{padding:0 14px}.status{display:none}}
-</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>To-Do Manager</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="root"></div>
-<script>
-const SUPABASE_URL = "https://rwroqfdyylqqtlatkpqd.supabase.co";
-const SUPABASE_KEY = "sb_publishable_3PWwH-10cmn0fI5LLNS-WA_Tvb_cWS0";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
-});
+<main class="app-shell">
+<section id="authView" class="auth-card card">
+<p class="eyebrow">Task Manager</p><h1>To-Do</h1>
+<p class="subtitle">Sign in to sync your tasks across devices.</p>
+<form id="authForm" class="auth-form">
+<label class="field"><span>Email</span><input id="emailInput" type="email" autocomplete="email" required></label>
+<label class="field"><span>Password</span><input id="passwordInput" type="password" autocomplete="current-password" minlength="6" required></label>
+<button id="authSubmit" class="button primary" type="submit">Sign in</button>
+<button id="authToggle" class="link-button" type="button">Create an account</button>
+<p id="authMessage" class="auth-message" role="alert"></p>
+</form>
+</section>
 
-const root=document.getElementById("root");
-let state={lists:[]}, selected=null, user=null, realtime=null, busy=false;
+<div id="appView" hidden>
+<header class="app-header"><div><p class="eyebrow">Task Manager</p><h1>To-Do</h1><p class="subtitle">Personal and work tasks, kept simple.</p></div>
+<div class="header-actions"><span id="userEmail" class="user-email"></span><button id="signOut" class="button secondary">Sign out</button><button id="clearCompleted" class="button secondary">Clear completed</button></div></header>
 
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const id=()=>crypto.randomUUID();
-const $=x=>document.getElementById(x);
-function setMsg(type,msg){const el=$("msg");if(el){el.className=type||"";el.textContent=msg||"";el.hidden=!msg}}
-function loading(v){busy=v;document.querySelectorAll("button").forEach(b=>b.disabled=v)}
+<section class="toolbar card"><div class="toolbar-row">
+<button class="filter active" data-filter="all">All <span id="allCount"></span></button>
+<button class="filter" data-filter="personal">Personal <span id="personalCount"></span></button>
+<button class="filter" data-filter="work">Work <span id="workCount"></span></button>
+<button class="filter" data-filter="completed">Completed <span id="completedCount"></span></button>
+</div><div class="toolbar-row secondary-row">
+<label><span>Sort</span><select id="sortSelect"><option value="priority">Priority</option><option value="due">Due date</option><option value="time">Time</option><option value="created">Recently added</option><option value="title">Title</option></select></label>
+<label class="search"><span>Search</span><input id="searchInput" type="search" placeholder="Search tasks…"></label>
+</div></section>
 
-const APP_URL = "https://whenry2-git.github.io/checklist-manager/";
-let pendingEmail="";
+<section class="card add-card"><div class="section-heading"><h2>Add task</h2><p>Capture it now; refine it later.</p></div>
+<form id="taskForm" class="task-form">
+<label class="field title-field"><span>Task</span><input id="titleInput" maxlength="200" required placeholder="What needs to be done?"></label>
+<label class="field"><span>Type</span><select id="typeInput"><option value="personal">Personal</option><option value="work">Work</option></select></label>
+<label class="field"><span>Priority</span><select id="priorityInput"><option value="1">1 — Low</option><option value="2">2</option><option value="3" selected>3 — Normal</option><option value="4">4 — High</option><option value="5">5 — Critical</option></select></label>
+<label class="field"><span>Time</span><select id="timeInput"></select></label>
+<label class="field"><span>Due date</span><input id="dueInput" type="date"></label>
+<label class="field notes-field"><span>Notes <small>(optional)</small></span><input id="notesInput" maxlength="500" placeholder="Add a note…"></label>
+<button class="button primary add-button" type="submit">Add task</button>
+</form></section>
 
-function renderLogin(){
- root.innerHTML=`<div class="login"><div class="loginbox card">
- <h1>Checklist Manager</h1>
- <p>Sign in to sync your checklists across your PC and Android devices.</p>
- <div id="msg" hidden></div>
- <form id="auth">
- <div class="field"><label>Email</label><input id="email" type="email" required autocomplete="email"></div>
- <div class="field"><label>Password</label><input id="password" type="password" required minlength="6" autocomplete="current-password"></div>
- <button class="btn primary" id="signin">Sign in</button>
- <button class="btn" type="button" id="signup">Create account</button>
- <button class="btn" type="button" id="resend">Resend confirmation email</button>
- </form>
- <div class="note">New accounts require email confirmation. After clicking the confirmation link, you will return to this Checklist Manager page.</div>
- </div></div>`;
- $("auth").onsubmit=async e=>{e.preventDefault();await signIn()};
- $("signup").onclick=signUp;
- $("resend").onclick=resendConfirmation;
-}
-
-function showAuthMessageFromUrl(){
- const hash=window.location.hash.startsWith("#")?window.location.hash.slice(1):"";
- const params=new URLSearchParams(hash);
- const error=params.get("error");
- const description=params.get("error_description");
- if(error || description){
-   setMsg("error",decodeURIComponent(description||error));
-   history.replaceState(null,"",window.location.pathname+window.location.search);
-   return true;
- }
- return false;
-}
-
-async function signIn(){
- setMsg("","");loading(true);
- const {data,error}=await sb.auth.signInWithPassword({
-   email:$("email").value.trim(),
-   password:$("password").value
- });
- loading(false);
- if(error)setMsg("error",error.message);
- else if(data.session){user=data.user;await loadApp()}
-}
-
-async function signUp(){
- const email=$("email").value.trim(), password=$("password").value;
- if(!email||!password)return;
- setMsg("","");loading(true);
- const {data,error}=await sb.auth.signUp({
-   email,
-   password,
-   options:{emailRedirectTo:APP_URL}
- });
- loading(false);
- if(error)return setMsg("error",error.message);
-
- pendingEmail=email;
-
- if(data.session){
-   user=data.user;
-   await loadApp();
- }else{
-   setMsg("success","Account created. Check your email and click the confirmation link. Then return to this page.");
- }
-}
-
-async function resendConfirmation(){
- const email=(pendingEmail||$("email")?.value||"").trim();
- if(!email)return setMsg("error","Enter your email address first.");
- setMsg("","");loading(true);
- const {error}=await sb.auth.resend({
-   type:"signup",
-   email,
-   options:{emailRedirectTo:APP_URL}
- });
- loading(false);
- if(error)setMsg("error",error.message);
- else setMsg("success","A new confirmation email was requested. Check your inbox and spam folder.");
-}
-
-function renderApp(){
- root.innerHTML=`<div class="app">
- <header class="top"><div class="brand">Checklist Manager</div><div class="topright"><span class="status" id="status">Cloud synced</span><button class="btn" id="refresh">↻ Sync</button><button class="btn" id="logout">Sign out</button></div></header>
- <div class="layout"><aside class="side"><div class="sidehead"><strong>My checklists</strong><span id="count"></span></div><div class="lists" id="lists"></div><div id="noLists" hidden>No checklists yet.</div><button class="btn primary side-create" id="sideNew">＋ Create checklist</button>
-<div class="data-section">
-  <div class="data-title">Data</div>
-  <div class="data-actions">
-    <button class="btn" id="importBtn">Import CSV</button>
-    <button class="btn" id="export">Export CSV</button>
-  </div>
-  <input id="file" type="file" accept=".csv,text/csv" hidden>
-</div></aside>
- <main class="main"><div id="empty" class="empty"><div><div style="font-size:34px">☑</div><h2>Select a checklist</h2><p>Choose a checklist from the left.</p></div></div>
- <div id="view" hidden></div></main></div><footer>Cloud synced • <span id="userEmail"></span></footer></div>`;
- $("logout").onclick=async()=>{await sb.auth.signOut();};
- $("refresh").onclick=loadApp;
- $("sideNew").onclick=createChecklist;
- $("importBtn").onclick=()=>$("file").click();
- $("file").onchange=importCSV;
- $("export").onclick=exportCSV;
- $("userEmail").textContent=user.email||"";
- render();
-}
-function render(){
- $("count").textContent=state.lists.length?state.lists.length:"";
- const exportBtn=$("export");if(exportBtn)exportBtn.disabled=!selected;
- const box=$("lists");box.innerHTML="";
- state.lists.forEach(c=>{
-  const b=document.createElement("button");b.className="listbtn"+(c.id===selected?" active":"");
-  b.innerHTML=`<span>${esc(c.name)}</span><span class="badge">${c.items.length}</span>`;
-  b.onclick=()=>{selected=c.id;render()};
-  box.appendChild(b);
- });
- $("noLists").hidden=state.lists.length!==0;
- const c=state.lists.find(x=>x.id===selected);
- if(!c){$("empty").hidden=false;$("view").hidden=true;return}
- $("empty").hidden=true;$("view").hidden=false;renderView(c);
-}
-function renderView(c){
- const done=c.items.filter(i=>i.completed).length,pct=c.items.length?Math.round(done/c.items.length*100):0;
- $("view").innerHTML=`<div class="card"><div class="viewhead"><div><h1 class="title">${esc(c.name)}</h1></div><div class="actions"><button class="btn" id="rename">Rename</button><button class="btn danger" id="delete">Delete</button></div></div>
- <div class="progresswrap"><div class="progressbar"><div class="progress" style="width:${pct}%"></div></div><div class="progresslabel">${done} of ${c.items.length} complete (${pct}%)</div></div>
- <div class="items" id="items">${c.items.length?c.items.map((it,n)=>`<div class="item" draggable="true" data-id="${it.id}"><span class="handle">☷</span><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" ${it.completed?"checked":""} data-check="${it.id}"><span class="itemtext ${it.completed?"done":""}">${esc(it.text)}</span></label><div class="itemtools"><button class="iconbtn" data-up="${it.id}" title="Move up">↑</button><button class="iconbtn" data-down="${it.id}" title="Move down">↓</button><button class="iconbtn" data-remove="${it.id}" title="Remove">×</button></div></div>`).join(""):`<div class="emptyitems">No items yet. Add one below.</div>`}</div>
- <form class="addrow" id="add"><input id="newitem" placeholder="Add an item…" autocomplete="off"><button class="btn primary">＋ Add item</button></form>
- <div class="bottom"><button class="btn" id="all">Complete all</button><button class="btn" id="clear">Clear completed</button><button class="btn" id="reset">Reset</button></div></div>`;
- $("add").onsubmit=async e=>{e.preventDefault();const text=$("newitem").value.trim();if(!text)return;await addItem(c,text)};
- $("rename").onclick=renameChecklist;$("delete").onclick=deleteChecklist;
- $("all").onclick=()=>bulkComplete(c,true);$("clear").onclick=()=>clearCompleted(c);$("reset").onclick=()=>bulkComplete(c,false);
-  c.items.forEach(it=>{const ch=document.querySelector(`[data-check="${it.id}"]`);if(ch)ch.onchange=()=>toggleItem(c,it.id,ch.checked)});
- document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>removeItem(c,b.dataset.remove));
- document.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>moveItem(c,b.dataset.up,-1));
- document.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>moveItem(c,b.dataset.down,1));
- let drag=null;document.querySelectorAll(".item").forEach(el=>{el.ondragstart=()=>drag=el.dataset.id;el.ondragover=e=>e.preventDefault();el.ondrop=()=>{if(drag&&drag!==el.dataset.id)reorder(c,drag,el.dataset.id)}});
-}
-async function dbInsertChecklist(name){
- const cid=id(); const {error}=await sb.from("checklists").insert({id:cid,user_id:user.id,name,sort_order:state.lists.length});
- if(error)throw error; return cid;
-}
-async function createChecklist(){
- const name=prompt("Checklist name:");if(!name||!name.trim())return;
- try{loading(true);const cid=await dbInsertChecklist(name.trim());state.lists.push({id:cid,name:name.trim(),items:[]});selected=cid;render();setStatus("Saved");}catch(e){alert(e.message)}finally{loading(false)}
-}
-async function addItem(c,text){
- try{loading(true);const pos=c.items.length;const item={id:id(),checklist_id:c.id,text,completed:false,position:pos};const {error}=await sb.from("checklist_items").insert(item);if(error)throw error;c.items.push(item);render();}catch(e){alert(e.message)}finally{loading(false)}
-}
-async function toggleItem(c,itemId,completed){try{if(itemId&&typeof itemId==="object")itemId=itemId.id;const {error}=await sb.from("checklist_items").update({completed,updated_at:new Date().toISOString()}).eq("id",itemId);if(error)throw error;const it=c.items.find(x=>x.id===itemId);if(it)it.completed=completed;render();}catch(e){alert(e.message)}}
-async function removeItem(c,itemId){if(!confirm("Remove this item?"))return;try{loading(true);const {error}=await sb.from("checklist_items").delete().eq("id",itemId);if(error)throw error;c.items=c.items.filter(x=>x.id!==itemId);await normalize(c);render()}catch(e){alert(e.message)}finally{loading(false)}}
-async function moveItem(c,itemId,delta){const i=c.items.findIndex(x=>x.id===itemId),j=i+delta;if(i<0||j<0||j>=c.items.length)return;[c.items[i],c.items[j]]=[c.items[j],c.items[i]];await savePositions(c);render()}
-async function reorder(c,from,to){const a=c.items.findIndex(x=>x.id===from),b=c.items.findIndex(x=>x.id===to);if(a<0||b<0)return;const [x]=c.items.splice(a,1);c.items.splice(b,0,x);await savePositions(c);render()}
-async function normalize(c){c.items.forEach((x,i)=>x.position=i);await savePositions(c)}
-async function savePositions(c){try{loading(true);for(let i=0;i<c.items.length;i++){const {error}=await sb.from("checklist_items").update({position:i,updated_at:new Date().toISOString()}).eq("id",c.items[i].id);if(error)throw error;c.items[i].position=i}}catch(e){alert(e.message)}finally{loading(false)}}
-async function renameChecklist(){const c=state.lists.find(x=>x.id===selected);const name=prompt("New checklist name:",c.name);if(!name||!name.trim()||name.trim()===c.name)return;try{loading(true);const {error}=await sb.from("checklists").update({name:name.trim(),updated_at:new Date().toISOString()}).eq("id",c.id);if(error)throw error;c.name=name.trim();render()}catch(e){alert(e.message)}finally{loading(false)}}
-async function deleteChecklist(){const c=state.lists.find(x=>x.id===selected);if(!confirm(`Delete "${c.name}" and all its items?`))return;try{loading(true);const {error}=await sb.from("checklists").delete().eq("id",c.id);if(error)throw error;state.lists=state.lists.filter(x=>x.id!==c.id);selected=state.lists[0]?.id||null;render()}catch(e){alert(e.message)}finally{loading(false)}}
-async function bulkComplete(c,value){try{loading(true);const {error}=await sb.from("checklist_items").update({completed:value,updated_at:new Date().toISOString()}).eq("checklist_id",c.id);if(error)throw error;c.items.forEach(x=>x.completed=value);render()}catch(e){alert(e.message)}finally{loading(false)}}
-async function clearCompleted(c){try{loading(true);const ids=c.items.filter(x=>x.completed).map(x=>x.id);if(ids.length){const {error}=await sb.from("checklist_items").delete().in("id",ids);if(error)throw error;c.items=c.items.filter(x=>!x.completed);await normalize(c)}render()}catch(e){alert(e.message)}finally{loading(false)}}
-async function exportCSV(){const c=state.lists.find(x=>x.id===selected);if(!c)return;const rows=[["checklist","item","completed"],...c.items.map(x=>[c.name,x.text,x.completed?"true":"false"])];const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");download(`${c.name.replace(/[^a-z0-9]+/gi,"-")}.csv`,csv,"text/csv")}
-function download(name,data,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
-async function importCSV(e){
- const file=e.target.files[0];if(!file)return;try{const text=await file.text();const rows=parseCSV(text);if(rows.length<2)throw Error("CSV contains no data.");const headers=rows[0].map(x=>x.trim().toLowerCase());const ci=headers.indexOf("checklist"),ii=headers.indexOf("item")>=0?headers.indexOf("item"):headers.indexOf("task"),di=headers.indexOf("completed");if(ii<0)throw Error('CSV must contain an "item" or "task" column.');
- const groups={};rows.slice(1).forEach(r=>{const name=(ci>=0?r[ci]:"Imported checklist").trim()||"Imported checklist";const item=(r[ii]||"").trim();if(!item)return;(groups[name]??=[]).push({text:item,completed:di>=0?/^(true|1|yes)$/i.test(r[di]):false})});
- loading(true);for(const [name,items] of Object.entries(groups)){const cid=await dbInsertChecklist(name);const payload=items.map((x,i)=>({id:id(),checklist_id:cid,text:x.text,completed:x.completed,position:i}));if(payload.length){const {error}=await sb.from("checklist_items").insert(payload);if(error)throw error}}await loadApp();alert(`CSV imported: ${Object.keys(groups).length} checklist${Object.keys(groups).length===1?"":"s"} and ${Object.values(groups).reduce((n,a)=>n+a.length,0)} items.`);}catch(e){alert(e.message)}finally{e.target.value="";loading(false)}}
-function parseCSV(s){const out=[];let row=[],cell="",q=false;for(let i=0;i<s.length;i++){const ch=s[i],nx=s[i+1];if(q){if(ch==='"'&&nx==='"'){cell+='"';i++}else if(ch==='"')q=false;else cell+=ch}else if(ch==='"')q=true;else if(ch===','){row.push(cell);cell=""}else if(ch==='\n'){row.push(cell);out.push(row);row=[];cell=""}else if(ch!=='\r')cell+=ch}if(cell!==""||row.length){row.push(cell);out.push(row)}return out}
-function setStatus(x){const s=$("status");if(s)s.textContent=x}
-async function loadApp(){
- try{setStatus("Syncing…");const {data:cs,error:e1}=await sb.from("checklists").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:true});if(e1)throw e1;const {data:items,error:e2}=await sb.from("checklist_items").select("*").order("position",{ascending:true});if(e2)throw e2;state.lists=(cs||[]).map(c=>({...c,items:(items||[]).filter(i=>i.checklist_id===c.id)}));if(!selected||!state.lists.some(c=>c.id===selected))selected=state.lists[0]?.id||null;render();setStatus("Cloud synced");subscribe()}catch(e){setStatus("Sync error");alert(e.message)}}
-function subscribe(){
- if(realtime)sb.removeChannel(realtime);
- realtime=sb.channel("checklist-sync-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"checklists",filter:"user_id=eq."+user.id},()=>loadApp()).on("postgres_changes",{event:"*",schema:"public",table:"checklist_items"},()=>loadApp()).subscribe();
-}
-sb.auth.onAuthStateChange(async(_event,session)=>{
-  user=session?.user||null;
-  if(user){
-    if(!$("view") && !$("lists")) renderApp();
-    await loadApp();
-  }else{
-    state={lists:[]};
-    selected=null;
-    renderLogin();
-  }
-});
-(async()=>{
-  const authError = showAuthMessageFromUrl();
-  const {data}=await sb.auth.getSession();
-  if(data.session){
-    user=data.session.user;
-    renderApp();
-    await loadApp();
-  }else{
-    renderLogin();
-    if(authError){
-      setMsg("error","The email confirmation could not be completed. Please request a new confirmation email.");
-    }
-  }
-})();
-</script>
-</body>
-</html>
+<section class="card"><div class="list-header"><div><h2 id="listTitle">All tasks</h2><p id="listSummary"></p></div><span id="status" role="status"></span></div>
+<div id="tasks" class="tasks"></div><div id="emptyState" class="empty" hidden><div class="empty-icon">✓</div><h3>No tasks here</h3><p>Add a task above, or change your filter.</p></div></section>
+<footer class="app-footer"><span>To-Do Manager v2</span><span id="syncStatus">Cloud sync</span></footer>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="app.js"></script>
+</body></html>
