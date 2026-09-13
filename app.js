@@ -1,353 +1,39 @@
 (() => {
-  "use strict";
-
-  const STORAGE_KEY = "checklist-manager-v1";
-  let state = loadState();
-  let selectedId = state.checklists[0]?.id ?? null;
-
-  const $ = id => document.getElementById(id);
-  const listEl = $("checklistList");
-  const noLists = $("noLists");
-  const listCount = $("listCount");
-  const emptyState = $("emptyState");
-  const view = $("checklistView");
-  const nameInput = $("checklistName");
-  const progressBar = $("progressBar");
-  const progressText = $("progressText");
-  const itemsEl = $("items");
-  const statusEl = $("status");
-  const newItem = $("newItem");
-
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { checklists: [] };
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed.checklists)) throw new Error();
-      parsed.checklists = parsed.checklists.filter(c => c && typeof c.id === "string" && typeof c.name === "string" && Array.isArray(c.items));
-      parsed.checklists.forEach(c => c.items = c.items.filter(i => i && typeof i.text === "string").map(i => ({ text: i.text, done: !!i.done })));
-      return parsed;
-    } catch {
-      return { checklists: [] };
-    }
-  }
-
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function id() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  }
-
-  function current() {
-    return state.checklists.find(c => c.id === selectedId) || null;
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
-  }
-
-  function message(text) {
-    statusEl.textContent = text;
-    clearTimeout(message.timer);
-    message.timer = setTimeout(() => statusEl.textContent = "", 2200);
-  }
-
-  function renderList() {
-    listEl.innerHTML = "";
-    noLists.hidden = state.checklists.length > 0;
-    listCount.textContent = state.checklists.length ? `${state.checklists.length}` : "";
-    state.checklists.forEach(c => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "list-button" + (c.id === selectedId ? " active" : "");
-      const done = c.items.filter(i => i.done).length;
-      button.innerHTML = `<span class="list-name">${escapeHtml(c.name || "Untitled checklist")}</span><span class="list-count">${done}/${c.items.length}</span>`;
-      button.addEventListener("click", () => { selectedId = c.id; render(); });
-      listEl.appendChild(button);
-    });
-  }
-
-  function renderItems(c) {
-    itemsEl.innerHTML = "";
-    if (!c.items.length) {
-      itemsEl.innerHTML = '<div class="empty" style="padding:28px 8px">No items yet. Add your first item above.</div>';
-      return;
-    }
-
-    c.items.forEach((item, index) => {
-      const row = document.createElement("div");
-      row.className = "item" + (item.done ? " done" : "");
-      row.draggable = true;
-      row.dataset.index = String(index);
-      row.innerHTML = `
-        <span class="drag-handle" title="Drag to reorder" aria-hidden="true">⋮⋮</span>
-        <input class="item-check" type="checkbox" ${item.done ? "checked" : ""} aria-label="Complete item">
-        <span class="item-text">${escapeHtml(item.text)}</span>
-        <button type="button" class="move-up" aria-label="Move item up" ${index === 0 ? "disabled" : ""}>↑</button>
-        <button type="button" class="move-down" aria-label="Move item down" ${index === c.items.length - 1 ? "disabled" : ""}>↓</button>
-        <button type="button" class="remove" aria-label="Remove item">×</button>
-      `;
-
-      row.querySelector(".item-check").addEventListener("change", e => {
-        item.done = e.target.checked;
-        save(); render();
-      });
-
-      row.querySelector(".move-up").addEventListener("click", () => {
-        if (index <= 0) return;
-        [c.items[index - 1], c.items[index]] = [c.items[index], c.items[index - 1]];
-        save(); render();
-      });
-
-      row.querySelector(".move-down").addEventListener("click", () => {
-        if (index >= c.items.length - 1) return;
-        [c.items[index + 1], c.items[index]] = [c.items[index], c.items[index + 1]];
-        save(); render();
-      });
-
-      row.querySelector(".remove").addEventListener("click", () => {
-        c.items.splice(index, 1);
-        save(); render();
-      });
-
-      row.addEventListener("dragstart", e => {
-        row.classList.add("dragging");
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(index));
-      });
-
-      row.addEventListener("dragend", () => {
-        row.classList.remove("dragging");
-        itemsEl.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
-      });
-
-      row.addEventListener("dragover", e => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        row.classList.add("drag-over");
-      });
-
-      row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
-
-      row.addEventListener("drop", e => {
-        e.preventDefault();
-        row.classList.remove("drag-over");
-        const from = Number(e.dataTransfer.getData("text/plain"));
-        const to = index;
-        if (!Number.isInteger(from) || from === to || from < 0 || from >= c.items.length) return;
-        const [moved] = c.items.splice(from, 1);
-        c.items.splice(to, 0, moved);
-        save(); render();
-        message("Item order saved.");
-      });
-
-      itemsEl.appendChild(row);
-    });
-  }
-
-  function render() {
-    renderList();
-    const c = current();
-    emptyState.hidden = !!c;
-    view.hidden = !c;
-    if (!c) return;
-
-    nameInput.value = c.name;
-    const done = c.items.filter(i => i.done).length;
-    const total = c.items.length;
-    const pct = total ? Math.round(done / total * 100) : 0;
-    progressBar.style.width = pct + "%";
-    progressText.textContent = total ? `${done} of ${total} complete (${pct}%)` : "0 items";
-    renderItems(c);
-  }
-
-  function createChecklist(name) {
-    const clean = String(name || "").trim();
-    if (!clean) return;
-    const c = { id: id(), name: clean.slice(0, 150), items: [] };
-    state.checklists.push(c);
-    selectedId = c.id;
-    save(); render();
-    setTimeout(() => newItem.focus(), 0);
-  }
-
-  $("newChecklist").addEventListener("click", () => {
-    const name = prompt("Checklist name:", "New checklist");
-    if (name !== null) createChecklist(name);
-  });
-  $("emptyNew").addEventListener("click", () => {
-    const name = prompt("Checklist name:", "New checklist");
-    if (name !== null) createChecklist(name);
-  });
-
-  $("addForm").addEventListener("submit", e => {
-    e.preventDefault();
-    const c = current();
-    const text = newItem.value.trim();
-    if (!c || !text) return;
-    c.items.push({ text, done: false });
-    newItem.value = "";
-    save(); render();
-    newItem.focus();
-  });
-
-  $("renameButton").addEventListener("click", () => {
-    const c = current();
-    if (!c) return;
-    const name = prompt("Checklist name:", c.name);
-    if (name !== null && name.trim()) {
-      c.name = name.trim().slice(0,150);
-      save(); render(); message("Checklist renamed.");
-    }
-  });
-
-  nameInput.addEventListener("change", () => {
-    const c = current();
-    if (!c) return;
-    c.name = nameInput.value.trim().slice(0,150) || "Untitled checklist";
-    save(); renderList(); message("Name saved.");
-  });
-
-  $("deleteButton").addEventListener("click", () => {
-    const c = current();
-    if (!c) return;
-    if (!confirm(`Delete "${c.name}"? This cannot be undone.`)) return;
-    state.checklists = state.checklists.filter(x => x.id !== c.id);
-    selectedId = state.checklists[0]?.id ?? null;
-    save(); render();
-  });
-
-  $("completeAll").addEventListener("click", () => {
-    const c = current(); if (!c) return;
-    c.items.forEach(i => i.done = true);
-    save(); render(); message("All items completed.");
-  });
-
-  $("clearCompleted").addEventListener("click", () => {
-    const c = current(); if (!c) return;
-    c.items = c.items.filter(i => !i.done);
-    save(); render(); message("Completed items removed.");
-  });
-
-  $("resetChecklist").addEventListener("click", () => {
-    const c = current(); if (!c) return;
-    if (!confirm("Reset all items to incomplete?")) return;
-    c.items.forEach(i => i.done = false);
-    save(); render(); message("Checklist reset.");
-  });
-
-  function csvCell(value) {
-    const s = String(value ?? "");
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-
-  function download(filename, content, type) {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  $("exportCurrent").addEventListener("click", () => {
-    const c = current(); if (!c) return;
-    const rows = [["checklist","item","completed"], ...c.items.map(i => [c.name, i.text, i.done ? "true" : "false"])];
-    download(`${safeFilename(c.name)}.csv`, rows.map(r => r.map(csvCell).join(",")).join("\r\n"), "text/csv;charset=utf-8");
-    message("CSV exported.");
-  });
-
-  $("exportAll").addEventListener("click", () => {
-    if (!state.checklists.length) { message("Nothing to export."); return; }
-    const rows = [["checklist","item","completed"]];
-    state.checklists.forEach(c => c.items.forEach(i => rows.push([c.name, i.text, i.done ? "true" : "false"])));
-    download("checklists.csv", rows.map(r => r.map(csvCell).join(",")).join("\r\n"), "text/csv;charset=utf-8");
-    message("All checklists exported.");
-  });
-
-  function parseCSV(text) {
-    const rows = [];
-    let row = [], cell = "", quoted = false;
-    for (let i=0; i<text.length; i++) {
-      const ch = text[i];
-      if (quoted) {
-        if (ch === '"' && text[i+1] === '"') { cell += '"'; i++; }
-        else if (ch === '"') quoted = false;
-        else cell += ch;
-      } else {
-        if (ch === '"') quoted = true;
-        else if (ch === ",") { row.push(cell); cell = ""; }
-        else if (ch === "\n") { row.push(cell); rows.push(row); row=[]; cell=""; }
-        else if (ch !== "\r") cell += ch;
-      }
-    }
-    row.push(cell);
-    if (row.length > 1 || row[0].trim()) rows.push(row);
-    return rows;
-  }
-
-  $("csvInput").addEventListener("change", e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const rows = parseCSV(String(reader.result || ""));
-        if (!rows.length) throw new Error("CSV is empty.");
-        const header = rows[0].map(x => x.trim().toLowerCase());
-        let nameIndex = header.indexOf("checklist");
-        let itemIndex = header.indexOf("item");
-        let doneIndex = header.indexOf("completed");
-        let start = 1;
-
-        if (itemIndex < 0) {
-          itemIndex = header.indexOf("task");
-          if (itemIndex < 0) {
-            nameIndex = 0; itemIndex = 1; doneIndex = 2; start = 0;
-          }
-        }
-
-        const groups = new Map();
-        for (let i=start; i<rows.length; i++) {
-          const r = rows[i];
-          const itemText = String(r[itemIndex] ?? "").trim();
-          if (!itemText) continue;
-          const name = String(r[nameIndex] ?? "").trim() || file.name.replace(/\.csv$/i, "") || "Imported checklist";
-          const done = doneIndex >= 0 && /^(true|yes|1|done|complete|completed)$/i.test(String(r[doneIndex] ?? "").trim());
-          if (!groups.has(name)) groups.set(name, []);
-          groups.get(name).push({ text: itemText, done });
-        }
-        if (!groups.size) throw new Error("No checklist items found.");
-
-        let firstId = null;
-        groups.forEach((items, name) => {
-          const c = { id: id(), name: name.slice(0,150), items };
-          state.checklists.push(c);
-          if (!firstId) firstId = c.id;
-        });
-        selectedId = firstId;
-        save(); render(); message(`${groups.size} checklist${groups.size > 1 ? "s" : ""} imported.`);
-      } catch (err) {
-        alert("Could not import CSV: " + err.message);
-      } finally {
-        e.target.value = "";
-      }
-    };
-    reader.readAsText(file);
-  });
-
-  $("clearData").addEventListener("click", () => {
-    if (!confirm("Delete all locally stored checklists? This cannot be undone.")) return;
-    state = { checklists: [] };
-    selectedId = null;
-    save(); render();
-  });
-
-  function safeFilename(name) {
-    return String(name || "checklist").replace(/[\\/:*?"<>|]+/g, "_").trim().slice(0,80) || "checklist";
-  }
-
-  render();
+"use strict";
+const { createClient } = window.supabase;
+const supabase = createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.publishableKey, {
+  auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}
+});
+const TIME_OPTIONS=[0,...Array.from({length:24},(_,i)=>(i+1)*.5)];
+let tasks=[],activeFilter="all",searchTerm="",sortMode="priority",authMode="signin",currentUser=null,realtimeChannel=null;
+const $=id=>document.getElementById(id);
+const timeLabel=v=>{v=Number(v);if(v===0)return"<30 min";if(v===.5)return"30 min";if(Number.isInteger(v))return`${v} ${v===1?"hour":"hours"}`;return`${Math.floor(v)} hr 30 min`};
+const priorityLabel=p=>["","Low","Below normal","Normal","High","Critical"][p]||"Normal";
+const typeLabel=t=>t==="work"?"Work":"Personal";
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const formatDue=d=>{if(!d)return"No due date";const x=new Date(`${d}T00:00:00`),today=new Date();today.setHours(0,0,0,0);const tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);if(x.getTime()===today.getTime())return"Today";if(x.getTime()===tomorrow.getTime())return"Tomorrow";return x.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})};
+const overdue=t=>{if(!t.due_date||t.completed)return false;const d=new Date();d.setHours(0,0,0,0);return new Date(`${t.due_date}T00:00:00`)<d};
+function status(t){$("status").textContent=t;clearTimeout(status.timer);status.timer=setTimeout(()=>$("status").textContent="",2200)}
+function sync(t){$("syncStatus").textContent=t}
+async function loadTasks(){sync("Syncing…");const {data,error}=await supabase.from("tasks").select("*").order("completed",{ascending:true}).order("priority",{ascending:false}).order("created_at",{ascending:false});if(error){console.error(error);sync("Sync error");status(error.message);return}tasks=data||[];sync("Cloud sync active");render()}
+function visible(){let r=tasks.filter(t=>{if(activeFilter==="personal"&&t.type!=="personal")return false;if(activeFilter==="work"&&t.type!=="work")return false;if(activeFilter==="completed"&&!t.completed)return false;if(activeFilter!=="completed"&&t.completed)return false;if(searchTerm&&!`${t.title} ${t.notes||""}`.toLowerCase().includes(searchTerm))return false;return true});r.sort((a,b)=>{if(sortMode==="priority")return b.priority-a.priority||new Date(b.created_at)-new Date(a.created_at);if(sortMode==="due"){if(!a.due_date&&!b.due_date)return 0;if(!a.due_date)return 1;if(!b.due_date)return-1;return a.due_date.localeCompare(b.due_date)}if(sortMode==="time")return b.time-a.time;if(sortMode==="title")return a.title.localeCompare(b.title);return new Date(b.created_at)-new Date(a.created_at)});return r}
+function counts(){const a=tasks.filter(t=>!t.completed),p=a.filter(t=>t.type==="personal").length,w=a.filter(t=>t.type==="work").length,c=tasks.filter(t=>t.completed).length;$("allCount").textContent=a.length?`(${a.length})`:"";$("personalCount").textContent=p?`(${p})`:"";$("workCount").textContent=w?`(${w})`:"";$("completedCount").textContent=c?`(${c})`:""}
+function row(t){const r=document.createElement("article");r.className=`task ${t.completed?"done":""} ${overdue(t)?"overdue":""}`;const stars="★".repeat(t.priority)+"☆".repeat(5-t.priority);r.innerHTML=`<label class="check-wrap"><input class="task-check" type="checkbox" ${t.completed?"checked":""}><span class="custom-check"></span></label><div class="task-main"><div class="task-title-row"><h3>${esc(t.title)}</h3><span class="type-badge ${t.type}">${typeLabel(t.type)}</span></div>${t.notes?`<p class="task-notes">${esc(t.notes)}</p>`:""}<div class="task-meta"><span class="priority" title="Priority ${t.priority} — ${priorityLabel(t.priority)}">${stars}</span><span>${timeLabel(t.time)}</span><span class="${overdue(t)?"due-overdue":""}">${formatDue(t.due_date)}</span></div></div><div class="task-actions"><button class="icon-button edit-task" title="Edit">✎</button><button class="icon-button delete-task" title="Delete">×</button></div>`;
+r.querySelector(".task-check").addEventListener("change",async e=>{const completed=e.target.checked;const {error}=await supabase.from("tasks").update({completed,completed_at:completed?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq("id",t.id).eq("user_id",currentUser.id);if(error){e.target.checked=!completed;status(error.message);return}await loadTasks();status(completed?"Task completed.":"Task reopened.")});
+r.querySelector(".delete-task").addEventListener("click",async()=>{if(!confirm(`Delete "${t.title}"?`))return;const{error}=await supabase.from("tasks").delete().eq("id",t.id).eq("user_id",currentUser.id);if(error){status(error.message);return}await loadTasks();status("Task deleted.")});
+r.querySelector(".edit-task").addEventListener("click",async()=>{const title=prompt("Task",t.title);if(title===null)return;const clean=title.trim();if(!clean)return;const notes=prompt("Notes (optional)",t.notes||"");if(notes===null)return;const{error}=await supabase.from("tasks").update({title:clean.slice(0,200),notes:notes.slice(0,500),updated_at:new Date().toISOString()}).eq("id",t.id).eq("user_id",currentUser.id);if(error){status(error.message);return}await loadTasks();status("Task updated.")});return r}
+function render(){counts();document.querySelectorAll(".filter").forEach(b=>b.classList.toggle("active",b.dataset.filter===activeFilter));$("listTitle").textContent={all:"All tasks",personal:"Personal tasks",work:"Work tasks",completed:"Completed tasks"}[activeFilter];const v=visible(),a=tasks.filter(t=>!t.completed).length,total=tasks.filter(t=>!t.completed).reduce((s,t)=>s+Number(t.time||0),0);$("listSummary").textContent=`${v.length} shown · ${a} active · ${timeLabel(total)} total estimated`;$("tasks").innerHTML="";v.forEach(t=>$("tasks").appendChild(row(t)));$("emptyState").hidden=!!v.length}
+function resetForm(){$("taskForm").reset();$("typeInput").value="personal";$("priorityInput").value="3";$("timeInput").value="1"}
+async function session(session){currentUser=session?.user||null;$("authView").hidden=!!currentUser;$("appView").hidden=!currentUser;if(!currentUser){tasks=[];if(realtimeChannel){await supabase.removeChannel(realtimeChannel);realtimeChannel=null}return}$("userEmail").textContent=currentUser.email||"";await loadTasks();if(realtimeChannel)await supabase.removeChannel(realtimeChannel);realtimeChannel=supabase.channel(`tasks-${currentUser.id}`).on("postgres_changes",{event:"*",schema:"public",table:"tasks",filter:`user_id=eq.${currentUser.id}`},()=>loadTasks()).subscribe()}
+async function auth(e){e.preventDefault();const email=$("emailInput").value.trim(),password=$("passwordInput").value;$("authMessage").textContent="Working…";$("authSubmit").disabled=true;const r=authMode==="signin"?await supabase.auth.signInWithPassword({email,password}):await supabase.auth.signUp({email,password});$("authSubmit").disabled=false;if(r.error){$("authMessage").textContent=r.error.message;return}if(authMode==="signup"&&!r.data.session){$("authMessage").textContent="Account created. Check your email to confirm it, then sign in.";return}$("authMessage").textContent=""}
+$("authForm").addEventListener("submit",auth);
+$("authToggle").addEventListener("click",()=>{authMode=authMode==="signin"?"signup":"signin";$("authSubmit").textContent=authMode==="signin"?"Sign in":"Create account";$("authToggle").textContent=authMode==="signin"?"Create an account":"I already have an account";$("authMessage").textContent=""});
+$("signOut").addEventListener("click",()=>supabase.auth.signOut());
+$("taskForm").addEventListener("submit",async e=>{e.preventDefault();if(!currentUser)return;const title=$("titleInput").value.trim();if(!title)return;const{error}=await supabase.from("tasks").insert({user_id:currentUser.id,title:title.slice(0,200),notes:$("notesInput").value.trim().slice(0,500),type:$("typeInput").value,priority:Number($("priorityInput").value),time:Number($("timeInput").value),due_date:$("dueInput").value||null,completed:false});if(error){status(error.message);return}resetForm();await loadTasks();status("Task added.");$("titleInput").focus()});
+document.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>{activeFilter=b.dataset.filter;render()}));
+$("searchInput").addEventListener("input",e=>{searchTerm=e.target.value.trim().toLowerCase();render()});
+$("sortSelect").addEventListener("change",e=>{sortMode=e.target.value;render()});
+$("clearCompleted").addEventListener("click",async()=>{const n=tasks.filter(t=>t.completed).length;if(!n){status("No completed tasks to clear.");return}if(!confirm(`Remove ${n} completed task${n===1?"":"s"}?`))return;const{error}=await supabase.from("tasks").delete().eq("user_id",currentUser.id).eq("completed",true);if(error){status(error.message);return}await loadTasks();status("Completed tasks cleared.")});
+$("timeInput").innerHTML=TIME_OPTIONS.map(v=>`<option value="${v}"${v===1?" selected":""}>${timeLabel(v)}</option>`).join("");resetForm();
+(async()=>{const{data:{session:s}}=await supabase.auth.getSession();await session(s);supabase.auth.onAuthStateChange((_e,s)=>setTimeout(()=>session(s),0))})();
 })();
