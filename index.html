@@ -163,7 +163,7 @@ function renderView(c){
  $("add").onsubmit=async e=>{e.preventDefault();const text=$("newitem").value.trim();if(!text)return;await addItem(c,text)};
  $("rename").onclick=renameChecklist;$("delete").onclick=deleteChecklist;
  $("all").onclick=()=>bulkComplete(c,true);$("clear").onclick=()=>clearCompleted(c);$("reset").onclick=()=>bulkComplete(c,false);
-  c.items.forEach(it=>{const ch=document.querySelector(`[data-check="${it.id}"]`);if(ch)ch.onchange=()=>toggleItem(c,it,ch.checked)});
+  c.items.forEach(it=>{const ch=document.querySelector(`[data-check="${it.id}"]`);if(ch)ch.onchange=()=>toggleItem(c,it.id,ch.checked)});
  document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>removeItem(c,b.dataset.remove));
  document.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>moveItem(c,b.dataset.up,-1));
  document.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>moveItem(c,b.dataset.down,1));
@@ -180,7 +180,7 @@ async function createChecklist(){
 async function addItem(c,text){
  try{loading(true);const pos=c.items.length;const item={id:id(),checklist_id:c.id,text,completed:false,position:pos};const {error}=await sb.from("checklist_items").insert(item);if(error)throw error;c.items.push(item);render();}catch(e){alert(e.message)}finally{loading(false)}
 }
-async function toggleItem(c,itemId,completed){try{const {error}=await sb.from("checklist_items").update({completed,updated_at:new Date().toISOString()}).eq("id",itemId);if(error)throw error;const it=c.items.find(x=>x.id===itemId);if(it)it.completed=completed;render();}catch(e){alert(e.message)}}
+async function toggleItem(c,itemId,completed){try{if(itemId&&typeof itemId==="object")itemId=itemId.id;const {error}=await sb.from("checklist_items").update({completed,updated_at:new Date().toISOString()}).eq("id",itemId);if(error)throw error;const it=c.items.find(x=>x.id===itemId);if(it)it.completed=completed;render();}catch(e){alert(e.message)}}
 async function removeItem(c,itemId){if(!confirm("Remove this item?"))return;try{loading(true);const {error}=await sb.from("checklist_items").delete().eq("id",itemId);if(error)throw error;c.items=c.items.filter(x=>x.id!==itemId);await normalize(c);render()}catch(e){alert(e.message)}finally{loading(false)}}
 async function moveItem(c,itemId,delta){const i=c.items.findIndex(x=>x.id===itemId),j=i+delta;if(i<0||j<0||j>=c.items.length)return;[c.items[i],c.items[j]]=[c.items[j],c.items[i]];await savePositions(c);render()}
 async function reorder(c,from,to){const a=c.items.findIndex(x=>x.id===from),b=c.items.findIndex(x=>x.id===to);if(a<0||b<0)return;const [x]=c.items.splice(a,1);c.items.splice(b,0,x);await savePositions(c);render()}
