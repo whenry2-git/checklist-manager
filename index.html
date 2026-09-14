@@ -155,14 +155,14 @@ function render(){
 }
 function renderView(c){
  const done=c.items.filter(i=>i.completed).length,pct=c.items.length?Math.round(done/c.items.length*100):0;
- $("view").innerHTML=`<div class="card"><div class="viewhead"><div><h1 class="title">${esc(c.name)}</h1></div><div class="actions"><button class="btn" id="rename">Rename</button><button class="btn danger" id="delete">Delete</button></div></div>
+ $("view").innerHTML=`<div class="card"><div class="viewhead"><div><h1 class="title">${esc(c.name)}</h1></div><div class="actions"><button class="btn" id="rename">Rename</button><button class="btn danger" id="clear">Clear completed</button><button class="btn danger" id="delete">Delete</button></div></div>
  <div class="progresswrap"><div class="progressbar"><div class="progress" style="width:${pct}%"></div></div><div class="progresslabel">${done} of ${c.items.length} complete (${pct}%)</div></div>
  <div class="items" id="items">${c.items.length?c.items.map((it,n)=>`<div class="item" draggable="true" data-id="${it.id}"><span class="handle">☷</span><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" ${it.completed?"checked":""} data-check="${it.id}"><span class="itemtext ${it.completed?"done":""}">${esc(it.text)}</span></label><div class="itemtools"><button class="iconbtn" data-up="${it.id}" title="Move up">↑</button><button class="iconbtn" data-down="${it.id}" title="Move down">↓</button><button class="iconbtn" data-remove="${it.id}" title="Remove">×</button></div></div>`).join(""):`<div class="emptyitems">No items yet. Add one below.</div>`}</div>
  <form class="addrow" id="add"><input id="newitem" placeholder="Add an item…" autocomplete="off"><button class="btn primary">＋ Add item</button></form>
- <div class="bottom"><button class="btn" id="all">Complete all</button><button class="btn" id="clear">Clear completed</button><button class="btn" id="reset">Reset</button></div></div>`;
+ <div class="bottom"><button class="btn" id="all">Complete all</button><button class="btn" id="reset">Reset</button></div></div>`;
  $("add").onsubmit=async e=>{e.preventDefault();const text=$("newitem").value.trim();if(!text)return;await addItem(c,text)};
  $("rename").onclick=renameChecklist;$("delete").onclick=deleteChecklist;
- $("all").onclick=()=>bulkComplete(c,true);$("clear").onclick=()=>clearCompleted(c);$("reset").onclick=()=>bulkComplete(c,false);
+ $("all").onclick=()=>bulkComplete(c,true);$("clear").onclick=()=>{const n=c.items.filter(i=>i.completed).length;if(!n){alert("There are no completed items to clear.");return}if(confirm(`Clear ${n} completed item${n===1?"":"s"} from this checklist?`))clearCompleted(c)};$("reset").onclick=()=>bulkComplete(c,false);
   c.items.forEach(it=>{const ch=document.querySelector(`[data-check="${it.id}"]`);if(ch)ch.onchange=()=>toggleItem(c,it.id,ch.checked)});
  document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>removeItem(c,b.dataset.remove));
  document.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>moveItem(c,b.dataset.up,-1));
